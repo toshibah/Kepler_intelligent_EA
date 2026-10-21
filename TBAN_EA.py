@@ -7,12 +7,16 @@ Polls Forex Factory for high-impact events and writes STOP/GO
 to MT5 Common Files so TBAN_EA.mq5 can pause trading.
 """
 import logging
+import importlib
 import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import forexfactory
+try:
+    forexfactory = importlib.import_module("forexfactory")
+except ImportError:
+    forexfactory = None
 
 # ============================================================
 # CONFIGURATION
@@ -52,6 +56,10 @@ def write_signal(stop: bool) -> None:
 
 
 def check_news() -> bool:
+    if forexfactory is None:
+        log.error("The 'forexfactory' package is unavailable; blocking trading until it is installed.")
+        return True
+
     now = datetime.now(timezone.utc)
     start_month = (now - timedelta(days=1)).strftime("%Y-%m")
     end_month = (now + timedelta(days=1)).strftime("%Y-%m")
